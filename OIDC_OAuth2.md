@@ -334,7 +334,7 @@ Direct the user to navigate to the verification_uri (or verification_uri_complet
 Step 3: Device Polls the Token Endpoint
 While the user is completing the authorization process, the device should start polling the token endpoint at the interval specified in the initial response. Here's how you can poll using curl:
 
-```
+```sh
 curl -X POST \
   http://keycloak-server/auth/realms/{realm-name}/protocol/openid-connect/token \
   -d 'client_id={client-id}' \
@@ -383,7 +383,7 @@ The response from Keycloak will include an auth_req_id that you will use to poll
 Step 2: Client Polls for the Token
 After initiating the authentication request, the client needs to poll the token endpoint to check if the user has completed the authentication process.
 
-```
+```sh
 curl -X POST \
   -H "Content-Type: application/x-www-form-urlencoded" \
   -d "grant_type=urn:openid:params:grant-type:ciba" \
