@@ -133,36 +133,36 @@ This means that the user is authenticated via some external authentication devic
 
 Example:
 
-### Authorization Code Flow
+## 1) Authorization Code Flow
 
 To obtain a token from Keycloak using the Authorization Code flow with curl, you need to follow these steps:
 
-1. **Register a client in Keycloak:** Make sure your client is set up in Keycloak with the Authorization Code flow enabled.
+1. **Register a client in Keycloak**: Make sure your client is set up in Keycloak with the Authorization Code flow enabled.
 
-2. **Get the Authorization Code:**
-   - Direct the user to the Keycloak login page with the appropriate query parameters. The user will log in and Keycloak will redirect to the redirect URI you provided with an authorization code.
-   - Example URL to get the authorization code (you should open this in a browser, not with curl):
+2. **Get the Authorization Code**:
+    - Direct the user to the Keycloak login page with the appropriate query parameters. The user will log in and Keycloak will redirect to the redirect URI you provided with an authorization code.
+    - Example URL to get the authorization code (you should open this in a browser, not with curl):
 
-     ```
-     http://keycloak-server/auth/realms/{realm-name}/protocol/openid-connect/auth?client_id={client-id}&redirect_uri={redirect-uri}&response_type=code&scope=openid
-     ```
+      ```
+      http://keycloak-server/auth/realms/{realm-name}/protocol/openid-connect/auth?client_id={client-id}&redirect_uri={redirect-uri}&response_type=code&scope=openid
+      ```
 
-     Replace `{realm-name}`, `{client-id}`, and `{redirect-uri}` with your actual realm name, client ID, and redirect URI.
+      Replace `{realm-name}`, `{client-id}`, and `{redirect-uri}` with your actual realm name, client ID, and redirect URI.
 
-3. **Exchange the Authorization Code for a Token:**
-   - Once you have the authorization code, you can exchange it for an access token using curl. Here's an example of how to do this:
+3. **Exchange the Authorization Code for a Token**:
+    - Once you have the authorization code, you can exchange it for an access token using curl. Here's an example of how to do this:
 
-     ```sh
-     curl -X POST \
-     -d "client_id={client-id}" \
-     -d "client_secret={client-secret}" \
-     -d "grant_type=authorization_code" \
-     -d "code={authorization-code}" \
-     -d "redirect_uri={redirect-uri}" \
-     http://keycloak-server/auth/realms/{realm-name}/protocol/openid-connect/token
-     ```
+      ```sh
+      curl -X POST \
+        -d "client_id={client-id}" \
+        -d "client_secret={client-secret}" \
+        -d "grant_type=authorization_code" \
+        -d "code={authorization-code}" \
+        -d "redirect_uri={redirect-uri}" \
+        http://keycloak-server/auth/realms/{realm-name}/protocol/openid-connect/token
+      ```
 
-     Replace `{client-id}`, `{client-secret}`, `{authorization-code}`, `{redirect-uri}`, and `{realm-name}` with your actual client ID, client secret, the authorization code you received, the redirect URI, and the realm name.
+      Replace `{client-id}`, `{client-secret}`, `{authorization-code}`, `{redirect-uri}`, and `{realm-name}` with your actual client ID, client secret, the authorization code you received, the redirect URI, and the realm name.
 
 Here's a breakdown of the parameters:
 
@@ -174,4 +174,227 @@ Here's a breakdown of the parameters:
 
 The response from Keycloak will include an access token, which you can use to authenticate API requests on behalf of the user.
 
+Please note that the Authorization Code flow is intended for server-side applications because it involves client secrets. If you're working with a public client (like a single-page application), you should use the Implicit flow or PKCE (Proof Key for Code Exchange) instead, as they do not expose client secrets.
+
+## 2) Resource Owner Password Credentials Grant
+
+To obtain a token from Keycloak using the Resource Owner Password Credentials Grant with curl, you need to follow these steps:
+
+1. **Register a client in Keycloak**: Make sure your client is set up in Keycloak with the Resource Owner Password Credentials Grant enabled.
+
+2. **Obtain the Access Token**:
+    - Use curl to send a POST request to Keycloak with the necessary parameters. Here's an example of how to do this:
+
+      ```sh
+      curl -X POST \
+        -d "client_id={client-id}" \
+        -d "client_secret={client-secret}" \
+        -d "username={username}" \
+        -d "password={password}" \
+        -d "grant_type=password" \
+        http://keycloak-server/auth/realms/{realm-name}/protocol/openid-connect/token
+      ```
+
+      Replace `{client-id}`, `{client-secret}`, `{username}`, `{password}`, and `{realm-name}` with your actual client ID, client secret, the resource owner's username, their password, and the realm name.
+
+Here's a breakdown of the parameters:
+
+- `client_id`: The client ID for your application.
+- `client_secret`: The client secret for your application (if it is a confidential client).
+- `username`: The resource owner's username.
+- `password`: The resource owner's password.
+- `grant_type`: This must be `password` for the Resource Owner Password Credentials Grant.
+
+The response from Keycloak will include an access token, which you can use to authenticate API requests on behalf of the user.
+
+Please note that the Resource Owner Password Credentials Grant is not recommended for use in new applications. It is considered a less secure approach because it requires the application to handle the user's credentials directly. Instead, it is recommended to use more secure flows like the Authorization Code flow with PKCE, especially for applications that are available to third parties.
+
+Additionally, the use of this grant type must be enabled in Keycloak for the client. You can enable it by editing the client settings in the Keycloak admin console and setting "Direct Access Grants Enabled" to "ON".
+
+## 3) Client Credentials Grant
+
+To obtain a token from Keycloak using the "Client Credentials Grant" flow, you need to have a client set up in Keycloak with "Access Type" configured as "confidential" and "Service Accounts Enabled". You also need to ensure that the client has the "client_credentials" grant type allowed.
+
+### Steps to Obtain the Access Token
+
+1. **Register a client in Keycloak**: Ensure your client is set up in Keycloak with the "Access Type" configured as "confidential" and "Service Accounts Enabled".
+
+2. **Obtain the Access Token**:
+    - Use curl to send a POST request to Keycloak with the necessary parameters. Here's an example of how to do this:
+
+      ```sh
+      curl -X POST \
+        'http://keycloak-server/auth/realms/{realm-name}/protocol/openid-connect/token' \
+        -H 'Content-Type: application/x-www-form-urlencoded' \
+        -d 'client_id={client-id}' \
+        -d 'client_secret={client-secret}' \
+        -d 'grant_type=client_credentials'
+      ```
+
+      Replace the following placeholders with your actual data:
+      - `{keycloak-server}`: The base URL of your Keycloak server.
+      - `{realm-name}`: The name of the realm where your client is configured.
+      - `{client-id}`: The client ID of your confidential client.
+      - `{client-secret}`: The client secret associated with your client.
+
+### Example with Placeholder Values Replaced
+
+```sh
+curl -X POST \
+  'http://localhost:8080/auth/realms/myrealm/protocol/openid-connect/token' \
+  -H 'Content-Type: application/x-www-form-urlencoded' \
+  -d 'client_id=myclient' \
+  -d 'client_secret=9f8e72e8-4356-4bab-8f8c-9c6d1e5c26e2' \
+  -d 'grant_type=client_credentials'
+```
+When you run this command, Keycloak should respond with a JSON object that includes the access token. It will look something like this:
+
+```json
+{
+  "access_token": "eyJhbGciOiJSUzI1NiIsInR5cCIgOiAi...",
+  "expires_in": 60,
+  "refresh_expires_in": 0,
+  "token_type": "Bearer",
+  "not-before-policy": 0,
+  "session_state": "12345678-1234-1234-1234-123456789abc"
+}
+```
+You can then use the access_token value as a Bearer token in the Authorization header for subsequent API requests that require authentication.
+
+Please ensure that you keep your client secret confidential and secure, as it allows anyone to obtain tokens with the permissions granted to the client.
+
+## 4) Implicit Flow
+
+The Implicit flow is designed for applications where the client secret cannot be securely stored, such as single-page applications (SPAs). In the Implicit flow, tokens are returned directly via the redirect URI after a successful authentication, without an intermediate code exchange step.
+
+However, it's important to note that the Implicit flow is considered less secure than the Authorization Code flow with PKCE and has been deprecated in OAuth 2.1 in favor of more secure alternatives. If possible, you should use the Authorization Code flow with PKCE for public clients like SPAs.
+
+That said, if you still need to use the Implicit flow with Keycloak, here's how you would initiate the flow:
+
+1. **Redirect the user to the Keycloak authentication endpoint**: You need to construct a URL that points to the Keycloak authentication endpoint with the appropriate query parameters and then redirect the user to this URL. The user will authenticate and Keycloak will redirect back to the specified redirect URI with the access token in the URL fragment.
+
+   Here's an example of the URL for the Implicit flow:
+
+http://keycloak-server/auth/realms/{realm-name}/protocol/openid-connect/auth?client_id={client-id}&redirect_uri={redirect-uri}&response_type=token&scope=openid
+
+Replace `{realm-name}`, `{client-id}`, and `{redirect-uri}` with your actual realm name, client ID, and redirect URI.
+
+2. **User Authentication**: The user will be prompted to log in (if not already logged in) and to grant consent if required.
+
+3. **Receive the Token**: After successful authentication, Keycloak will redirect the user to the redirect URI you provided, with the access token appended to the URI fragment (not the query string). This means the token will be in the part of the URL after the `#`.
+
+Example of redirect URI with token:
+
+http://your-app/callback#access_token={access-token}&token_type=bearer&expires_in={expiration-time}&...
+
+4. **Extract the Token**: Because the token is returned in the URI fragment, it is not accessible via curl. Instead, you would typically use client-side JavaScript to extract the token from the URL.
+
+Here's an example of how you might extract the token in JavaScript:
+
+```javascript
+if (window.location.hash) {
+  const urlFragment = new URLSearchParams(window.location.hash.substring(1)); // Remove the '#' character
+  const accessToken = urlFragment.get('access_token');
+  // Use the access token for subsequent API calls
+}
+```
+Remember that the Implicit flow should not be used for new applications. Instead, consider using the Authorization Code flow with PKCE, which provides better security and is recommended for applications that cannot securely store a client secret.
+
+### 5) Device Authorization Grant
+
+The Device Authorization Grant is an OAuth 2.0 extension that enables devices with no browser or limited input capability to obtain an access token. This flow involves multiple steps:
+
+1. **Device requests a user code**: The device makes a request to the Keycloak's device authorization endpoint to obtain a verification URI and user code.
+
+2. **User enters the code on a secondary device**: The user navigates to the verification URI on a device with a browser (like a smartphone or computer) and enters the user code.
+
+3. **Device polls the token endpoint**: While the user is authorizing the device, the device repeatedly polls the token endpoint until the user completes the authorization process or the code expires.
+
+Here's how you can use curl to perform each step:
+
+### Step 1: Device Requests a User Code
+
+```sh
+curl -X POST \
+  http://keycloak-server/auth/realms/{realm-name}/protocol/openid-connect/auth/device \
+  -d 'client_id={client-id}' \
+  -d 'scope=openid'
+```
+Replace `{realm-name}` and `{client-id}` with your actual realm name and client ID. This request will return a response containing:
+
+device_code: The device verification code.
+user_code: The code the user needs to enter.
+verification_uri: The URL the user must visit to enter the code.
+verification_uri_complete: The URL including the user code, which simplifies the user experience.
+expires_in: The lifetime in seconds of the device_code and user_code.
+interval: The minimum interval in seconds that the client should wait between polling requests.
+Step 2: User Authorizes the Device
+Direct the user to navigate to the verification_uri (or verification_uri_complete) on a secondary device and enter the user_code. The user will be prompted to log in to Keycloak (if not already logged in) and authorize the device.
+
+Step 3: Device Polls the Token Endpoint
+While the user is completing the authorization process, the device should start polling the token endpoint at the interval specified in the initial response. Here's how you can poll using curl:
+
+```
+curl -X POST \
+  http://keycloak-server/auth/realms/{realm-name}/protocol/openid-connect/token \
+  -d 'client_id={client-id}' \
+  -d 'grant_type=urn:ietf:params:oauth:grant-type:device_code' \
+  -d 'device_code={device-code}'
+```
+Replace `{realm-name}`, `{client-id}`, and `{device-code}` with your actual realm name, client ID, and the device_code you received in the first step.
+
+The device should continue polling the token endpoint until it receives an access token or an error response indicating that the user did not authorize the device within the allowed time frame.
+
+Once the user completes the authorization process, the token endpoint will respond with an access token that the device can use to make authenticated requests on behalf of the user.
+
+Please note that the Device Authorization Grant must be enabled for the client in Keycloak for this flow to work. You can enable it by editing the client settings in the Keycloak admin console and setting "OAuth 2.0 Device Authorization Grant Enabled" to "ON".
+
+### 6) OIDC CIBA Grant
+
+The OpenID Connect Client Initiated Backchannel Authentication (OIDC CIBA) Grant is a flow that allows a client application to initiate the authentication of an end-user and receive notification of the authentication event through a backchannel. This flow is particularly useful for scenarios where the client is not directly interacting with the end-user at the time of authentication, such as "decoupled" or "headless" authentication.
+
+To use the CIBA flow with Keycloak, you need to follow these steps:
+
+1. **Configure Keycloak for CIBA**: Ensure that Keycloak is configured to support the CIBA flow. This typically involves enabling CIBA in the realm settings, configuring a client to use CIBA, and setting up the necessary policies and authentication mechanisms.
+
+2. **Initiate the Authentication Request**: The client initiates an authentication request to Keycloak's backchannel authentication endpoint, providing the necessary parameters.
+
+3. **User Authentication**: The user is authenticated out-of-band by Keycloak. This could involve the user receiving a push notification on their mobile device, for example.
+
+4. **Client Polls for the Token**: The client polls Keycloak's token endpoint to check if the authentication has been completed.
+
+Here's how you can use curl to perform the authentication request and token polling:
+
+### Step 1: Initiate the Authentication Request
+
+```sh
+curl -X POST \
+  -H "Content-Type: application/x-www-form-urlencoded" \
+  -d "client_id={client-id}" \
+  -d "scope=openid" \
+  -d "login_hint={user-identifier}" \
+  -d "binding_message={binding-message}" \
+  http://keycloak-server/auth/realms/{realm-name}/protocol/openid-connect/ext/ciba/auth
+```
+Replace `{realm-name}`, `{client-id}`, `{user-identifier}`, and `{binding-message}` with your actual realm name, client ID, the identifier for the user you want to authenticate, and a binding message that may be shown to the user during authentication.
+
+The response from Keycloak will include an auth_req_id that you will use to poll the token endpoint.
+
+Step 2: Client Polls for the Token
+After initiating the authentication request, the client needs to poll the token endpoint to check if the user has completed the authentication process.
+
+```
+curl -X POST \
+  -H "Content-Type: application/x-www-form-urlencoded" \
+  -d "grant_type=urn:openid:params:grant-type:ciba" \
+  -d "client_id={client-id}" \
+  -d "auth_req_id={auth-req-id}" \
+  http://keycloak-server/auth/realms/{realm-name}/protocol/openid-connect/token
+```
+Replace `{realm-name}`, `{client-id}`, and `{auth-req-id}` with your actual realm name, client ID, and the auth_req_id you received from the authentication request.
+
+The client should continue polling the token endpoint until it receives an access token, a refresh token, or an error response indicating that the authentication was not successful or was canceled.
+
 Please note that the CIBA flow is an advanced feature and may require additional configuration in Keycloak, such as setting up authentication policies and configuring the client for CIBA support. Additionally, the exact endpoints and parameters may vary depending on the Keycloak version and any customizations that have been applied. Always refer to the Keycloak documentation and your specific Keycloak configuration for the most accurate information.
+
+
